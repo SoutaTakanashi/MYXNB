@@ -2,8 +2,9 @@ import os
 from skimage import io
 import torchvision.datasets.mnist as mnist
 import torch
+from PIL import Image
 
-def flip(x, dim):
+def flip(x, dim):#将原图片镜像翻转
     indices = [slice(None)] * x.dim()
     indices[dim] = torch.arange(x.size(dim) - 1, -1, -1,
                                 dtype=torch.long, device=x.device)
@@ -31,7 +32,9 @@ def save_as_images(mode=1):  # mode 1:Train, else: Test.
         for i, (img, label) in enumerate(zip(train_set[0], train_set[1])):
             img_path = data_path + str(i) + '.jpg'
             # Save the images to local directory.
-            io.imsave(img_path, (flip(img, -2)))
+            img = (flip(img, -2))
+            img = torch.rot90(img,3, [0, 1])
+            io.imsave(img_path, img)
             # 保存标号文件路径和标号
             f.write(img_path + ' ' + str(label.item()) + '\n')
 
@@ -43,12 +46,14 @@ def save_as_images(mode=1):  # mode 1:Train, else: Test.
             os.makedirs(data_path)
         for i, (img, label) in enumerate(zip(test_set[0], test_set[1])):
             img_path = data_path + str(i) + '.jpg'
-            io.imsave(img_path, (flip(img, -2)))
+            img = (flip(img, -2))
+            img = torch.rot90(img, 3, [0, 1])
+            io.imsave(img_path, img)
             f.write(img_path + ' ' + str(label.item()) + '\n')
         f.close()
 
 def convert():
-    if os.path.exists('train'):  # 如果目录不存在就返回False
+    if os.path.exists('train'):
         print("Pictures(train) already converted.")
 
     else:
@@ -57,10 +62,9 @@ def convert():
         save_as_images(1)
         print("Image conversion accomplished! Long may the sunshine!")
 
-    if os.path.exists('test'):  # 如果目录不存在就返回False
+    if os.path.exists('test'):
         print("Pictures(test) already converted.")
     else:
         print("Building test set...")
         save_as_images(2)
         print("Image conversion accomplished! Long may the sunshine!")
-

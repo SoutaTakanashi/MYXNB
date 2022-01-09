@@ -8,7 +8,7 @@ class Net(torch.nn.Module):
             torch.nn.Conv2d(1, 16, 5,1,2),  # (16,28,28)
             # 想要con2d卷积出来的图片尺寸没有变化, padding=(kernel_size-1)/2
             torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=2)  # (16,14,14)
+            torch.nn.MaxPool2d(2)  # (16,14,14)
         )
         self.conv2 = torch.nn.Sequential(
            torch.nn.Conv2d(16, 64, 3), # (64,12,12)
@@ -63,3 +63,10 @@ def test(model,test_loader):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     print('accuracy on test set: %d %% ' % (100*correct/total))
+
+def testSingle(model,data_loader):
+    with torch.no_grad():
+        for data in data_loader:
+            outputs = model(data)
+            _, predicted = torch.max(outputs.data, dim=1)
+    return predicted.item()

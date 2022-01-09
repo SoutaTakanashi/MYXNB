@@ -1,68 +1,174 @@
 import tkinter as tk
 from tkinter import filedialog
 from PyQt5.Qt import QWidget
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout,QPushButton,QLabel
-from PyQt5.QtGui import QPixmap
-from PIL import Image,ImageQt
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QPushButton, QLabel, QApplication,QListWidget
+from PyQt5.QtGui import QPixmap,QIcon
+import torch
+from PIL import Image,ImageOps,ImageFilter,ImageEnhance
+import CNN_Model,dataProcess
+from torchvision import transforms
+import matplotlib.pyplot as plt
 class MainWidget(QWidget):
 
     def __init__(self, Parent=None):
-        '''
-        Constructor
-        '''
+
         super().__init__(Parent)
         self.filePath=''
-
-        self.setFixedSize(800, 800)
-        self.setWindowTitle("MYXNB")
-
-        # 新建一个水平布局作为本窗体的主布局
-        main_layout = QHBoxLayout(self)
-        # 设置主布局内边距以及控件间距为10px
+        self.img=''
+        self.setFixedSize(640, 480)
+        self.setWindowTitle("Dark Souls III")
+        self.setWindowIcon(QIcon('dark souls.png'))
+        # Main layout.
+        main_layout = QVBoxLayout(self)
+        #Set distance between different widget to 10px
         main_layout.setSpacing(10)
-
-        # 新建垂直子布局用于放置按键
-        sub_layout1 = QVBoxLayout()
+        #New sub layout to place widgets.
+        sub_layout1 = QHBoxLayout()
 
         sub_layout1.setContentsMargins(10, 10, 10, 10)
-        self.__btn_Quit = QPushButton("Quit")
-        self.__btn_Quit.setParent(self)  # 设置父对象为本界面
-        self.__btn_Quit.clicked.connect(self.Quit)
-        sub_layout1.addWidget(self.__btn_Quit)
 
-        self.__btn_GetPic = QPushButton("Get picture")
-        self.__btn_GetPic.setParent(self)
-        self.__btn_GetPic.clicked.connect(self.getPhoto)
-        sub_layout1.addWidget(self.__btn_GetPic)
+        self.btn_Quit = QPushButton("Quit")
+        self.btn_Quit.clicked.connect(self.Quit)
+        
+        sub_layout1.addWidget(self.btn_Quit)
 
-        lbl = QLabel()
-        lbl.setParent(self)
-        lbl.setPixmap(QPixmap(self.filePath))
-        sub_layout1.addWidget(lbl)
+        self.btn_GetPic= QPushButton("Get picture")
+        self.btn_GetPic.clicked.connect(self.getPhoto)
+        sub_layout1.addWidget(self.btn_GetPic)
 
-        main_layout.addLayout(sub_layout1)  # 将子布局加入主布局
-        """
-         sub_layout2 = QVBoxLayout()
-        self.__picLbl=QLabel("MAMMA MIA")
-        self.__picLbl.setParent(self)
-        self.__picLbl.show()
-        self.pixmap=QPixmap(self.filePath)
-        print(self.filePath)
-        self.__picLbl.setPixmap(self.pixmap)
-        self.__picLbl.setScaledContents(True)
-        sub_layout2.addWidget(self.__picLbl)
-        main_layout.addLayout(sub_layout2)
-        """
+        self.btn_Pred= QPushButton("Predict")
+        self.btn_Pred.clicked.connect(self.pred)
+        sub_layout1.addWidget(self.btn_Pred)
+
+
+
+
+        main_layout.addLayout(sub_layout1)
+
+        sub_layout2 = QHBoxLayout()
+
+        self.lbl = QLabel(self.filePath)
+        self.lbl.setMaximumSize(280,280)
+        # lbl.setParent(self)
+        self.lbl.setPixmap(QPixmap(self.filePath))
+        sub_layout2.addWidget(self.lbl)
+
+        self.listFile = QListWidget()
+        # self.listFile.move(410,30)
+        self.listFile.setFixedSize(200, 280)
+        sub_layout2.addWidget(self.listFile)
+
+
+        main_layout.addLayout(sub_layout2)  # 将子布局加入主布局
+
     def Quit(self):
         self.close()
 
     def getPhoto(self):
+        QApplication.processEvents()
         root = tk.Tk()
         root.withdraw()
         file = filedialog.askopenfilename(filetypes=[('jpg','*.jpg'),('png','*.png'),('bmp','*.bmp')])
-        self.filePath = file
+        if not file=='':
+            self.filePath = file
+        else:
+            exit()
         print("Selected:", self.filePath)
-
+        self.img=Image.open(self.filePath)
+        self.lbl.setPixmap(QPixmap(self.filePath))
+        self.lbl.setScaledContents(True)
+        QApplication.processEvents()
         # Return the path of photo.
 
+    def pred(self):
+        self.listFile.addItem("Loading...")
+        QApplication.processEvents()
+        path=self.filePath
+        img = Image.open(path).convert('L')
 
+
+        enh_bri = ImageEnhance.Brightness(img)
+        img = enh_bri.enhance(factor=2)
+        enh_sha = ImageEnhance.Sharpness(img)
+        img = enh_sha.enhance(factor=1.5)
+        width, height = img.size
+
+        threshold = 115
+        for w in range(width):#二值化
+            for h in range(height):
+                if img.getpixel((w, h)) > threshold:
+                    img.putpixel((w, h), 255)
+                else:
+                    img.putpixel((w, h), 0)
+        #plt.imshow(img)
+        #plt.show()
+
+        def blackOrWhiteBased(image,wid,hei):
+            countWhite = 0
+            countBlack = 0
+            for w in range(wid):
+                for h in range(hei):
+                    if image.getpixel((w,h))==255:
+                        countWhite+=1
+                    else:
+                        countBlack+=1
+            if countWhite>countBlack:
+                return 0
+            else:
+                return 1
+        if blackOrWhiteBased(img,width,height)==0:#如果是白纸黑字
+            img=ImageOps.invert(img).convert('L')
+
+        def enlargeDigit(image,wid,hei):
+
+            yoko=[]
+            nao=[]
+            for w in range(wid):
+                for h in range(hei):
+                    if image.getpixel((w,h))==255:
+                        yoko.append(w)
+                        nao.append(h)
+
+            north=min(nao)
+            south=max(nao)
+            west=min(yoko)
+            east=max(yoko)
+
+            return image.crop((int(west / 2), int(north / 2), int((wid + east) / 2), int((height + south) / 2)))
+
+        if width >100:
+            img=enlargeDigit(img,width,height)
+            width, height = img.size
+        if width > 100:
+            img=enlargeDigit(img,width,height)
+
+
+
+        resize = transforms.Resize([28, 28])
+        testData = resize(img)
+        """
+        
+        
+        width, height = testData.size
+        
+        threshold = 0.4
+        for w in range(width):  # 二值化
+            for h in range(height):
+                if testData.getpixel((w, h)) > threshold:
+                    testData.putpixel((w, h), 1)
+                else:
+                    testData.putpixel((w, h), 0)
+
+        print("MYXNB!!!")
+        plt.imshow(testData)
+        plt.show()
+        """
+        transform = transforms.ToTensor()
+        testData = transform(testData)
+
+        #print(testData[0])
+        model = torch.load('model/net.pkl')
+        testData = testData.unsqueeze(0).unsqueeze(0)
+        result = CNN_Model.testSingle(model, testData)
+        outline = 'the prediction is '
+        self.listFile.addItem(outline + str(result))
