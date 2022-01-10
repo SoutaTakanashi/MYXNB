@@ -5,8 +5,9 @@ class Net(torch.nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = torch.nn.Sequential(  # (1,28,28)
+            #conv2d(in_channels,out_channels,kernelsize,stride,padding)
             torch.nn.Conv2d(1, 16, 5,1,2),  # (16,28,28)
-            # 想要con2d卷积出来的图片尺寸没有变化, padding=(kernel_size-1)/2
+            # To make the size of conv2d's output  unchanged: padding=(kernel_size-1)/2
             torch.nn.ReLU(),
             torch.nn.MaxPool2d(2)  # (16,14,14)
         )
@@ -25,7 +26,7 @@ class Net(torch.nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
-        x = x.view(x.size(0), -1)  # 将（batch，64,2,2）展平为（batch，256）
+        x = x.view(x.size(0), -1)  # Flat（batch，64,2,2）to（batch，256）
         x = self.fc(x)
         return x
 

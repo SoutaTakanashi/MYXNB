@@ -34,17 +34,17 @@ if __name__ == '__main__':
     if mode=="2":
         app = QApplication(sys.argv)
 
-        mainWidget = MainWidget()  # 新建一个主界面
-        mainWidget.show()  # 显示主界面
+        mainWidget = MainWidget()  # A new main widget.
+        mainWidget.show()  # Then show this widget.
 
-        exit(app.exec_())  # 进入消息循环
-    else:
+        exit(app.exec_())
+    if mode =="dev":#For developer (Me) only!
         import torch
-        from PIL import Image, ImageQt
+        from PIL import Image
         import CNN_Model
         from torchvision import transforms
 
-        path = 'C:\\Users\Souta\PycharmProjects\OCR\\test\\157.jpg'
+        path = 'test\\157.jpg'
         img = Image.open(path).convert('L')
         resize = transforms.Resize([28, 28])
         testData = resize(img)
@@ -54,5 +54,7 @@ if __name__ == '__main__':
         testData = testData.unsqueeze(0).unsqueeze(0)
         result = CNN_Model.testSingle(model, testData)
         print(result)
-
+    else:
+        print("Please choose your opreation:\n 1:Training 2:Read local picture and predict.")
+        mode = input("Enter Number:")
 

@@ -2,13 +2,8 @@ import os
 from skimage import io
 import torchvision.datasets.mnist as mnist
 import torch
-from PIL import Image
 
-def flip(x, dim):#将原图片镜像翻转
-    indices = [slice(None)] * x.dim()
-    indices[dim] = torch.arange(x.size(dim) - 1, -1, -1,
-                                dtype=torch.long, device=x.device)
-    return x[tuple(indices)]
+
 # read the emnist dataset
 train_set = (
 mnist.read_image_file('./dataset/emnist-mnist-train-images-idx3-ubyte/emnist-mnist-train-images-idx3-ubyte'),
@@ -19,23 +14,31 @@ mnist.read_image_file('./dataset/emnist-mnist-train-images-idx3-ubyte/emnist-mni
 mnist.read_label_file('./dataset/emnist-mnist-train-labels-idx1-ubyte/emnist-mnist-train-labels-idx1-ubyte')
 )
 #They are in 'tensor' type.
-
 #print(train_set[0][1].shape)
+
+def flip(x, dim):#Filp the picture.
+    indices = [slice(None)] * x.dim()
+    indices[dim] = torch.arange(x.size(dim) - 1, -1, -1,
+                                dtype=torch.long, device=x.device)
+    return x[tuple(indices)]
+
+
 def save_as_images(mode=1):  # mode 1:Train, else: Test.
 
-    if mode == 1:  # 如果是训练数据
+    if mode == 1:  # If it is training data.
         f = open('train.txt', 'w')
-        data_path = 'train/'  # 好像可以删去左边的/
+        data_path = 'train/'
         # Create if does not exist.
         if not os.path.exists(data_path):
             os.makedirs(data_path)
         for i, (img, label) in enumerate(zip(train_set[0], train_set[1])):
             img_path = data_path + str(i) + '.jpg'
-            # Save the images to local directory.
+            #Basic processing on raw pictures: File and Rotate
             img = (flip(img, -2))
             img = torch.rot90(img,3, [0, 1])
+            # Save the images to local directory.
             io.imsave(img_path, img)
-            # 保存标号文件路径和标号
+            # Save file's path and label in local txt file.
             f.write(img_path + ' ' + str(label.item()) + '\n')
 
         f.close()
