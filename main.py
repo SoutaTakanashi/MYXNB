@@ -10,8 +10,13 @@ from PyQt5.QtWidgets import QApplication
 
 
 if __name__ == '__main__':
-    print("Please choose your opreation:\n 1:Training 2:Read local picture and predict.")
+    print("Please choose your opreation:\n 1:Training \n 2:Read local picture and predict. \n 3:Exit")
     mode=input("Enter Number:")
+
+    while(not (mode == "1" or mode == "2" or mode == "3" or mode == "dev")):#Get valid input
+        print("Please choose your opreation:\n 1:Training \n 2:Read local picture and predict. \n 3:Exit")
+        mode = input("Enter Number:")
+
     if mode=="1":
         print("Now processing raw dataset...")
         dataProcess.convert()
@@ -38,6 +43,7 @@ if __name__ == '__main__':
         mainWidget.show()  # Then show this widget.
 
         exit(app.exec_())
+
     if mode =="dev":#For developer (Me) only!
         import torch
         from PIL import Image
@@ -54,7 +60,6 @@ if __name__ == '__main__':
         testData = testData.unsqueeze(0).unsqueeze(0)
         result = CNN_Model.testSingle(model, testData)
         print(result)
-    else:
-        print("Please choose your opreation:\n 1:Training 2:Read local picture and predict.")
-        mode = input("Enter Number:")
+    if mode=="3":
+        exit()
 

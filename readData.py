@@ -9,30 +9,31 @@ class MyDataset(Dataset):
 
     # txt here is file path. Will be an incoming value when generating Data loader.
     def __init__(self, txt, transform, target_transform=None, loader=loader1):
-        fh = open(txt, 'r')
-        imgs = []
-        for line in fh:
+        file = open(txt, 'r')
+        imgInfo = []
+        for line in file:
             line = line.strip('\n')
             line = line.rstrip()  # remove blank space.
             words = line.split()  # path | label
 
-            imgs.append((words[0], int(words[1]))) # (address,label)
-        self.imgs = imgs
+            imgInfo.append((words[0], int(words[1]))) # (address,label)
+        self.imgInfo = imgInfo
         self.transform = transform
         self.target_transform = target_transform
         self.loader = loader
 
     # train_loader里面的
     def __getitem__(self, index):
-        pth, label = self.imgs[index]   # path and label of a image.
+        pth, label = self.imgInfo[index]   # path and label of a image.
         img = self.loader(pth)  # Use function loader1(path) to read image.
 
         if self.transform is not None:
-            img = self.transform(img)  # Convert to FloatTensor type.
-        return img, label
+            imgTensor = self.transform(img)  # Convert to FloatTensor type.
+
+        return imgTensor, label
 
     def __len__(self):
-        return len(self.imgs)
+        return len(self.imgInfo)
 
 
 def generate_loader():
