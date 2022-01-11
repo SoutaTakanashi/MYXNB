@@ -8,7 +8,7 @@ Instructions on how to run the code.
 
 First download EMNIST dataset. Unzip the split dataset you need to use in experiment.(eg. We used emnist-mnist dataset for training).
 
-​	**· **If you need to train on different dataset, please modify the path of dataset. Location: dataProcess.py, line 9-14. 
+· If you need to train on different dataset, please modify the path of dataset. Location: dataProcess.py, line 9-14. 
 
 Please build a new folder "dataset" at the same directory as python scripts were placed.
 
