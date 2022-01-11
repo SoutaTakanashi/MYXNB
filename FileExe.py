@@ -16,7 +16,7 @@ class MainWidget(QWidget):
         self.filePath=''
         self.img=''
         self.setFixedSize(640, 480)
-        self.setWindowTitle("Dark Souls III")
+        self.setWindowTitle("Digit Prediction")
         self.setWindowIcon(QIcon('dark souls.png'))
         # Main layout.
         main_layout = QVBoxLayout(self)

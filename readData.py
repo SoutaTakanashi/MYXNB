@@ -28,9 +28,9 @@ class MyDataset(Dataset):
         img = self.loader(pth)  # Use function loader1(path) to read image.
 
         if self.transform is not None:
-            imgTensor = self.transform(img)  # Convert to FloatTensor type.
+            img = self.transform(img)  # Convert to FloatTensor type.
 
-        return imgTensor, label
+        return img, label
 
     def __len__(self):
         return len(self.imgInfo)
